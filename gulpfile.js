@@ -1,47 +1,49 @@
 var gulp = require('gulp'),
-    concat = require('gulp-concat'),
-    rename = require('gulp-rename'),
-    uglify = require('gulp-uglify'),
-    sass = require('gulp-sass'),
-    sourcemaps = require('gulp-sourcemaps'),
-    autoprefixer = require('gulp-autoprefixer'),
-    babel = require('gulp-babel'),
-    imagemin = require('gulp-imagemin'),
-    browserSync = require('browser-sync').create();
-    
-    
-    
+concat = require('gulp-concat'),
+rename = require('gulp-rename'),
+uglify = require('gulp-uglify'),
+sass = require('gulp-sass'),
+sourcemaps = require('gulp-sourcemaps'),
+autoprefixer = require('gulp-autoprefixer'),
+babel = require('gulp-babel'),
+imagemin = require('gulp-imagemin'),
+browserSync = require('browser-sync').create(),
+notify = require('gulp-notify'),
+cssnano = require('gulp-cssnano')
+
+
+
 var jsFiles = {
-    src:    'src/js/**/*.js',
-    dist:   'dist/js' 
+src:    'src/js/**/*.js',
+dist:   'dist/js' 
 };
 
 var cssFiles = {
-    src:    'src/scss/**/*.scss',
-    dist:   'dist/css'
+src:    'src/scss/**/*.scss',
+dist:   'dist/css'
 };
 
 var imgFiles = {
-    src:    'src/img/*',
-    dist: 'dist/img'
+src:    'src/img/*',
+dist: 'dist/img'
 };
 
 //Common start
 gulp.task('img', function() {
-    return gulp.src(imgFiles.src)
-        .pipe(imagemin())
-        .pipe(gulp.dest(imgFiles.dist));
+return gulp.src(imgFiles.src)
+    .pipe(imagemin())
+    .pipe(gulp.dest(imgFiles.dist));
 });
 
 gulp.task('browser-sync', function() {
-    browserSync.init({
-        server: {
-            baseDir: "./dist/"
-        }
-    });
-    gulp.watch(cssFiles.src, ['cssProd']);
-    gulp.watch(jsFiles.src, ['jsProd']);
-    gulp.watch("./dist/*.html").on('change', browserSync.reload);
+browserSync.init({
+    server: {
+        baseDir: "./dist/"
+    }
+});
+gulp.watch(cssFiles.src, ['cssProd']);
+gulp.watch(jsFiles.src, ['jsProd']);
+gulp.watch("./dist/*.html").on('change', browserSync.reload);
 });
 //Common end
 
@@ -49,29 +51,30 @@ gulp.task('browser-sync', function() {
 
 //Combine, minify, convert to ES5 js, reload browser
 gulp.task('jsProd', function() {
-    return gulp.src(jsFiles.src)
-        .pipe(babel({
-            presets: ['env']
-        }))
-        .pipe(concat('scripts.js'))
-        .pipe(uglify())
-        .pipe(gulp.dest(jsFiles.dist))
-        .pipe(browserSync.reload({stream:true}));
-    });
+return gulp.src(jsFiles.src)
+    .pipe(babel({
+        presets: ['env']
+    }))
+    .pipe(concat('scripts.js'))
+    .pipe(uglify())
+    .pipe(gulp.dest(jsFiles.dist))
+    .pipe(browserSync.reload({stream:true}));
+});
 
 //Convert to css, combine, compress, autoprefix css, reload browser
 gulp.task('cssProd', function() {
-    return gulp.src(cssFiles.src)
-        .pipe(sourcemaps.init())
-        .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
-        .pipe(rename('styles.css'))
-        .pipe(autoprefixer({
-            browsers: ['last 15 versions'],
-            cascade: false
-        }))
-        .pipe(sourcemaps.write('../maps'))        
-        .pipe(gulp.dest(cssFiles.dist))
-        .pipe(browserSync.reload({stream:true}));
+return gulp.src(cssFiles.src)
+    .pipe(sourcemaps.init())
+    .pipe(sass({outputStyle: 'expand'}).on("error", notify.onError()))
+    .pipe(rename('styles.css'))
+    .pipe(autoprefixer({
+        browsers: ['last 15 versions'],
+        cascade: false
+    }))
+    .pipe(cssnano())
+    .pipe(sourcemaps.write('../maps'))        
+    .pipe(gulp.dest(cssFiles.dist))
+    .pipe(browserSync.reload({stream:true}));
 });
 //Production end
 
